@@ -1,0 +1,317 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Lab_DefaultInvLocation" xml:space="preserve">
+    <value>Location:</value>
+  </data>
+  <data name="Lab_DefaultInvNo" xml:space="preserve">
+    <value>INV# </value>
+  </data>
+  <data name="Lab_InvNo" xml:space="preserve">
+    <value>INV #</value>
+  </data>
+  <data name="Lab_InvoiceLoading" xml:space="preserve">
+    <value>ระบบกำลังโหลดข้อมูลของ Invoice </value>
+  </data>
+  <data name="Lab_InvoiceSaveDone" xml:space="preserve">
+    <value>Invoice Saved for Printing</value>
+  </data>
+  <data name="Lab_NewInvoiceCreate" xml:space="preserve">
+    <value>New Invoice Creating</value>
+  </data>
+  <data name="Lab_PalletNo" xml:space="preserve">
+    <value>PALLET #</value>
+  </data>
+  <data name="Lab_RemainCtn" xml:space="preserve">
+    <value>Remain Carton:</value>
+  </data>
+  <data name="Lab_TotalInvoice" xml:space="preserve">
+    <value>Total Invoice :</value>
+  </data>
+  <data name="Lab_TotalOuter" xml:space="preserve">
+    <value>Total Carton : </value>
+  </data>
+  <data name="Lab_TotalPallet" xml:space="preserve">
+    <value>Total Pallet : </value>
+  </data>
+  <data name="Warn_BgwProcessingBlock" xml:space="preserve">
+    <value>ระบบกำลังประมวลผลการทำงานเบื้องหลัง กรุณารอสักครู่ก่อนลองอีกครั้ง</value>
+  </data>
+  <data name="Warn_BtwDBTxtFileError" xml:space="preserve">
+    <value>ไม่สามารถ Print ได้เนื่องจากเกิดปัญหาขณะเตรียมไฟล์ข้อมูล BarTender</value>
+  </data>
+  <data name="Warn_CartonAlreadyScanPallet" xml:space="preserve">
+    <value>Carton หมายเลขนี้ ได้ถูกสแกนเข้ากับ Pallet แล้ว</value>
+  </data>
+  <data name="Warn_CartonDeleteNotAllow" xml:space="preserve">
+    <value>ระบบไม่อนุญาตให้ลบ Carton ออกจาก Pallet ภายใต้สถานะนี้</value>
+  </data>
+  <data name="Warn_CartonIDAlreadyPrinted" xml:space="preserve">
+    <value>MSS User ของท่านไม่ได้รับอนุญาตการ Re-print</value>
+  </data>
+  <data name="Warn_CartonNotExistConfirmLoad" xml:space="preserve">
+    <value>Carton นี้ไม่อยู่ในชุด Invoice ปัจจุบัน กรุณาตรวจสอบ</value>
+  </data>
+  <data name="Warn_CartonScanNotSupport" xml:space="preserve">
+    <value>การสแกน Carton ID ไม่ได้ถูกรองรับในขั้นตอนนี้ กรุณาตรวจสอบ</value>
+  </data>
+  <data name="Warn_CatchErrorContactValor" xml:space="preserve">
+    <value>Catch Error กรุณาติดต่อ Valor #420(LPN1)</value>
+  </data>
+  <data name="Warn_ClosePalletConfirm" xml:space="preserve">
+    <value>ยืนยันดำเนินการ Close Pallet ที่เลือก ?</value>
+  </data>
+  <data name="Warn_ClosePalletNotAllowNoCarton" xml:space="preserve">
+    <value>ไม่สามารถปิด Pallet ได้ เนื่องจากไม่มีข้อมูล Carton</value>
+  </data>
+  <data name="Warn_ConfirmBeforeResetPrinted" xml:space="preserve">
+    <value>ข้อมูล Carton ได้ถูก Print ไปแล้ว ยืนยันการเริ่มต้นใหม่หรือไม่ ?</value>
+  </data>
+  <data name="Warn_ConfirmInputBoxInfo" xml:space="preserve">
+    <value>ยืนยันการบันทึกข้อมูลสำหรับ Invoice</value>
+  </data>
+  <data name="Warn_ConfirmLogout" xml:space="preserve">
+    <value>การ Logout จะยกเลิกการทำงานทั้งหมด ยืนยันการดำเนินการต่อ ?</value>
+  </data>
+  <data name="Warn_ConfirmPrintAllBox" xml:space="preserve">
+    <value>ยืนยันการPrint สำหรับทุกหมายเลข Carton ID หรือไม่ ?</value>
+  </data>
+  <data name="Warn_ConfirmPrintBoxSelect" xml:space="preserve">
+    <value>ยืนยันการ Print สำหรับ Carton ID ที่เลือกทั้งหมด </value>
+  </data>
+  <data name="Warn_ConfirmPrintPalletID" xml:space="preserve">
+    <value>ยืนยันการ Print สำหรับ Pallet ID ?</value>
+  </data>
+  <data name="Warn_ConfirmSaveNewPallet" xml:space="preserve">
+    <value>ยืนยันการบันทึกข้อมูล New Pallet ?</value>
+  </data>
+  <data name="Warn_DBCatchError" xml:space="preserve">
+    <value>DB Process Error กรุณาติดต่อ Valor#420(LPN1)</value>
+  </data>
+  <data name="Warn_DeleteAllCartonConfirm" xml:space="preserve">
+    <value>ยืนยันการลบข้อมูล Carton ID ทั้งหมดใน Pallet</value>
+  </data>
+  <data name="Warn_DeleteCartonMustSelected" xml:space="preserve">
+    <value>ไม่พบข้อมูล Carton ID สำหรับการลบ กรุณาตรวจสอบ</value>
+  </data>
+  <data name="Warn_FormatScanNotMatch" xml:space="preserve">
+    <value>รูปแบบของข้อความ Scan นี้ไม่รองรับในระบบ กรุณาตรวจสอบ</value>
+  </data>
+  <data name="Warn_IntegerInputOnly" xml:space="preserve">
+    <value>กรุณาระบุข้อมูลเป็นตัวเลขจำนวนเต็มเท่านั้น</value>
+  </data>
+  <data name="Warn_InvCartonNotMatch" xml:space="preserve">
+    <value>Invoice ชุดนี้ยังไม่ได้รับการสแกนจับคู่ Outer Box กรุณาตรวจสอบ</value>
+  </data>
+  <data name="Warn_InvCheckingError" xml:space="preserve">
+    <value>ระบบไม่สามารถตรวจสอบข้อมูล Invoice ได้ กรุณาติดต่อ Valor#420(LPN1)</value>
+  </data>
+  <data name="Warn_InvDoneNotAllowReset" xml:space="preserve">
+    <value>ระบบยังไม่รองรับการ Reset ของ Invoice สถานะ Done กรุณาติดต่อ Valor#420(LPN1)</value>
+  </data>
+  <data name="Warn_InvForPalletNotFound" xml:space="preserve">
+    <value>ไม่พบข้อมูลของ Invoice สำหรับการทำ Pallet Label</value>
+  </data>
+  <data name="Warn_InvNeedToScanBefore" xml:space="preserve">
+    <value>กรุณาสแกน Invoice ก่อนดำเนินการต่อ</value>
+  </data>
+  <data name="Warn_InvPrintDoneNeedCancel" xml:space="preserve">
+    <value>Invoice สถานะ Save ไม่สามารถแก้ไขได้ กรุณา Reset ก่อนดำเนินการต่อ</value>
+  </data>
+  <data name="Warn_InvScannedToContinue" xml:space="preserve">
+    <value>Invoice ได้ถูกสแกนแล้ว กรุณาดำเนินการต่อ</value>
+  </data>
+  <data name="Warn_LoadBtwProcess" xml:space="preserve">
+    <value>ระบบกำลังโหลดส่วนเสริม Bartender หากมีหน้าต่างใดๆ ปรากฏ กรุณากด OK</value>
+  </data>
+  <data name="Warn_LoginBeforeScan" xml:space="preserve">
+    <value>กรุณา Login MSS User ก่อนดำเนินการต่อ</value>
+  </data>
+  <data name="Warn_MaxCartonPrintingReach_1" xml:space="preserve">
+    <value>จำนวน Carton ทั้งหมดเกินกว่าที่ระบบอนุญาตให้ Print ในหนึ่งครั้ง</value>
+  </data>
+  <data name="Warn_MaxCartonPrintingReach_2" xml:space="preserve">
+    <value>ระบบจะเรียงลำดับจากหมายเลขแรกไปจนครบจำนวนสูงสุด</value>
+  </data>
+  <data name="Warn_McIDScanNotSupport" xml:space="preserve">
+    <value>McID ไม่รองรับในขั้นตอนนี้ กรุณาตรวจสอบ</value>
+  </data>
+  <data name="Warn_MSSUserNoSkillRequired" xml:space="preserve">
+    <value>MSS User นี้ไม่สามารถใช้งานเมนูนี้ได้</value>
+  </data>
+  <data name="Warn_NoCartonForNewPallet" xml:space="preserve">
+    <value>ไม่สามารถสร้าง Pallet ใหม่ได้ เนื่องจาก Carton ID ทั้งหมดเสร็จสิ้นแล้ว</value>
+  </data>
+  <data name="Warn_NoCartonValidForPrint" xml:space="preserve">
+    <value>ไม่มีข้อมูล Carton ID ที่สามารถ Print ได้ กรุณาตรวจสอบ</value>
+  </data>
+  <data name="Warn_NoChangedForSave" xml:space="preserve">
+    <value>ไม่พบข้อมูลที่ถูกเปลี่ยนแปลงสำหรับการบันทึก กรุณาตรวจสอบอีกครั้ง</value>
+  </data>
+  <data name="Warn_NoInvoiceSelected" xml:space="preserve">
+    <value>กรุณาเลือกหมายเลข Invoice ที่ต้องการก่อนดำเนินการต่อ</value>
+  </data>
+  <data name="Warn_NoPalletInputForCarton" xml:space="preserve">
+    <value>ไม่พบข้อมูล Pallet สำหรับดำเนินการ กรุณาตรวจสอบ</value>
+  </data>
+  <data name="Warn_OpenedFileChkForDelete" xml:space="preserve">
+    <value>เกิดปัญหาขณะระบบกำลังลบไฟล์ กรุณาตรวจสอบหากไฟล์เดิมถูกเปิดค้างไว้</value>
+  </data>
+  <data name="Warn_PalletCloseNotAllowDelete" xml:space="preserve">
+    <value>ระบบยังไม่รองรับการ Delete Pallet ที่มีสถานะ Close กรุณาติดต่อ Valor#420(LPN1)</value>
+  </data>
+  <data name="Warn_PalletNoCartonMustDeleted" xml:space="preserve">
+    <value>ระบบไม่อนุญาตการบันทึก กรุณาลบ Pallet ที่ไม่มี Carton ก่อนลองอีกครั้ง</value>
+  </data>
+  <data name="Warn_PleaseInputBoxQuantity" xml:space="preserve">
+    <value>กรุณาระบุจำนวน Carton ที่ต้องการสำหรับ Invoice</value>
+  </data>
+  <data name="Warn_PleaseSelectBoxToPrint" xml:space="preserve">
+    <value>กรุณาเลือกหมายเลข Carton ID ที่ต้องการ Print ก่อนดำเนินการต่อ</value>
+  </data>
+  <data name="Warn_PrintingErrorOccurs" xml:space="preserve">
+    <value>เกิดข้อผิดพลาดในการ Print ดังรายการนี้ กรุณาติดต่อ Valor#420(LPN1)</value>
+  </data>
+  <data name="Warn_PrintNotAllowWhenCartonLeft" xml:space="preserve">
+    <value>ไม่สามารถ Print ได้ กรุณาสร้าง Pallet ให้ครบถ้วนทุก Carton ก่อนดำเนินการต่อ</value>
+  </data>
+  <data name="Warn_ProgramIsSaving" xml:space="preserve">
+    <value>. . . ระบบกำลังประมวลผล และบันทึกข้อมูล . . .</value>
+  </data>
+  <data name="Warn_ReloadAfterInvScan" xml:space="preserve">
+    <value>ข้อมูลการทำงานก่อนหน้าจะถูกยกเลิกทั้งหมด ยืนยันการ Re-load หรือไม่ ?</value>
+  </data>
+  <data name="Warn_ReOpenPalletConfirm" xml:space="preserve">
+    <value>ยืนยันการยกเลิกสถานะ Close ของ Pallet นี้หรือไม่ ?
+
+หากมีข้อมูลการตรวจสอบ Pallet ของ QA จะถูกยกเลิกทั้งหมดเช่นกัน</value>
+  </data>
+  <data name="Warn_ResetCartonRejected" xml:space="preserve">
+    <value>ไม่สามารถ Reset ข้อมูลได้ กรุณาตรวจสอบ หรือติดต่อ Valor#420(LPN1)</value>
+  </data>
+  <data name="Warn_UnsaveInfoWillCancel" xml:space="preserve">
+    <value>ข้อมูลที่ไม่ถูก Save จะถูกยกเลิกทั้งหมด ยืนยันการยกเลิกข้อมูลชุดนี้หรือไม่ ?</value>
+  </data>
+  <data name="Warn_WaitScanInvForOuter" xml:space="preserve">
+    <value>กรุณาสแกน Invoice สำหรับ Outer ก่อนดำเนินการต่อ</value>
+  </data>
+  <data name="Warn_WaitScanNextInvInGroup" xml:space="preserve">
+    <value>กรุณาสแกนหมายเลข Invoice ถัดไปที่อยู่ในกลุ่ม</value>
+  </data>
+</root>
