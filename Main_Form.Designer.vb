@@ -43,9 +43,9 @@ Partial Class Main_Form
         Me.btUpdNote = New System.Windows.Forms.Button()
         Me.Label6 = New System.Windows.Forms.Label()
         Me.McName = New System.Windows.Forms.TextBox()
-        Me.McNo = New System.Windows.Forms.TextBox()
-        Me.FeedNo = New System.Windows.Forms.TextBox()
-        Me.FeedType = New System.Windows.Forms.TextBox()
+        Me.McID = New System.Windows.Forms.TextBox()
+        Me.FeederID = New System.Windows.Forms.TextBox()
+        Me.FeederType = New System.Windows.Forms.TextBox()
         Me.FeederSH = New System.Windows.Forms.Label()
         Me.Label5 = New System.Windows.Forms.Label()
         Me.Label4 = New System.Windows.Forms.Label()
@@ -322,35 +322,35 @@ Partial Class Main_Form
         Me.McName.TabIndex = 504
         Me.McName.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'McNo
+        'McID
         '
-        Me.McNo.BackColor = System.Drawing.SystemColors.Window
-        Me.McNo.Location = New System.Drawing.Point(440, 257)
-        Me.McNo.Name = "McNo"
-        Me.McNo.ReadOnly = True
-        Me.McNo.Size = New System.Drawing.Size(134, 20)
-        Me.McNo.TabIndex = 499
-        Me.McNo.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.McID.BackColor = System.Drawing.SystemColors.Window
+        Me.McID.Location = New System.Drawing.Point(440, 257)
+        Me.McID.Name = "McID"
+        Me.McID.ReadOnly = True
+        Me.McID.Size = New System.Drawing.Size(134, 20)
+        Me.McID.TabIndex = 499
+        Me.McID.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'FeedNo
+        'FeederID
         '
-        Me.FeedNo.BackColor = System.Drawing.SystemColors.Window
-        Me.FeedNo.Location = New System.Drawing.Point(212, 258)
-        Me.FeedNo.Name = "FeedNo"
-        Me.FeedNo.ReadOnly = True
-        Me.FeedNo.Size = New System.Drawing.Size(134, 20)
-        Me.FeedNo.TabIndex = 498
-        Me.FeedNo.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.FeederID.BackColor = System.Drawing.SystemColors.Window
+        Me.FeederID.Location = New System.Drawing.Point(212, 258)
+        Me.FeederID.Name = "FeederID"
+        Me.FeederID.ReadOnly = True
+        Me.FeederID.Size = New System.Drawing.Size(134, 20)
+        Me.FeederID.TabIndex = 498
+        Me.FeederID.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'FeedType
+        'FeederType
         '
-        Me.FeedType.BackColor = System.Drawing.SystemColors.Window
-        Me.FeedType.Location = New System.Drawing.Point(212, 296)
-        Me.FeedType.Name = "FeedType"
-        Me.FeedType.ReadOnly = True
-        Me.FeedType.Size = New System.Drawing.Size(134, 20)
-        Me.FeedType.TabIndex = 497
-        Me.FeedType.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.FeederType.BackColor = System.Drawing.SystemColors.Window
+        Me.FeederType.Location = New System.Drawing.Point(212, 296)
+        Me.FeederType.Name = "FeederType"
+        Me.FeederType.ReadOnly = True
+        Me.FeederType.Size = New System.Drawing.Size(134, 20)
+        Me.FeederType.TabIndex = 497
+        Me.FeederType.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'FeederSH
         '
@@ -358,7 +358,7 @@ Partial Class Main_Form
         Me.FeederSH.BackColor = System.Drawing.Color.Yellow
         Me.FeederSH.Font = New System.Drawing.Font("Tahoma", 15.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.FeederSH.ForeColor = System.Drawing.Color.Red
-        Me.FeederSH.Location = New System.Drawing.Point(121, 200)
+        Me.FeederSH.Location = New System.Drawing.Point(261, 201)
         Me.FeederSH.Name = "FeederSH"
         Me.FeederSH.Size = New System.Drawing.Size(96, 24)
         Me.FeederSH.TabIndex = 503
@@ -372,9 +372,9 @@ Partial Class Main_Form
         Me.Label5.ForeColor = System.Drawing.Color.Black
         Me.Label5.Location = New System.Drawing.Point(381, 262)
         Me.Label5.Name = "Label5"
-        Me.Label5.Size = New System.Drawing.Size(48, 14)
+        Me.Label5.Size = New System.Drawing.Size(46, 14)
         Me.Label5.TabIndex = 502
-        Me.Label5.Text = "Mc No:"
+        Me.Label5.Text = "Mc ID:"
         '
         'Label4
         '
@@ -384,9 +384,9 @@ Partial Class Main_Form
         Me.Label4.ForeColor = System.Drawing.Color.Black
         Me.Label4.Location = New System.Drawing.Point(122, 262)
         Me.Label4.Name = "Label4"
-        Me.Label4.Size = New System.Drawing.Size(75, 14)
+        Me.Label4.Size = New System.Drawing.Size(73, 14)
         Me.Label4.TabIndex = 501
-        Me.Label4.Text = "Feeder_No:"
+        Me.Label4.Text = "Feeder_ID:"
         '
         'Label3
         '
@@ -505,9 +505,9 @@ Partial Class Main_Form
         Me.Controls.Add(Me.btCt_Save)
         Me.Controls.Add(Me.Label6)
         Me.Controls.Add(Me.McName)
-        Me.Controls.Add(Me.McNo)
-        Me.Controls.Add(Me.FeedNo)
-        Me.Controls.Add(Me.FeedType)
+        Me.Controls.Add(Me.McID)
+        Me.Controls.Add(Me.FeederID)
+        Me.Controls.Add(Me.FeederType)
         Me.Controls.Add(Me.FeederSH)
         Me.Controls.Add(Me.Label5)
         Me.Controls.Add(Me.Label4)
@@ -579,9 +579,9 @@ Partial Class Main_Form
     Friend WithEvents Tmr_Scan As Timers.Timer
     Friend WithEvents Label6 As Label
     Friend WithEvents McName As TextBox
-    Friend WithEvents McNo As TextBox
-    Friend WithEvents FeedNo As TextBox
-    Friend WithEvents FeedType As TextBox
+    Friend WithEvents McID As TextBox
+    Friend WithEvents FeederID As TextBox
+    Friend WithEvents FeederType As TextBox
     Friend WithEvents FeederSH As Label
     Friend WithEvents Label5 As Label
     Friend WithEvents Label4 As Label

@@ -8,14 +8,13 @@ Imports System.Data.SqlClient ' Import the necessary namespace for SQL Server
 Imports System.Text
 Imports System.Net
 Imports System.Diagnostics
+Imports System.Reflection
 Public Class Main_Form
     ' ประกาศตัวแปรแบบ Public สำหรับใช้ในทั้ง Class
     Public Property Txt_FeederList As Object
     Public Property Txt_ScannedStatus As Object
     Public Property CurIdx As Integer
     Public Property YourMessageBox As Object
-    Public Property ReloadCnt1 As Integer
-    Public Property ReloadCnt2 As Integer
     Public Property Txt_FeedNo As Object
     Public Property Txt_FeedType As Object
     Public Property Txt_McNo As Object
@@ -35,8 +34,6 @@ Public Class Main_Form
     Dim Fx_BtwFilePath As String = "\DLL_Hana Feeder Management Templates"
     Dim TemplatePath As String
     Dim SkillReqNewPal As String = "Feeder Management"
-    Dim connectionString As String = "Data Source=DefaultConnection;Integrated Security=True"
-    Dim storedProcedureName As String = "HANA_SP_Feeder_GetInfo"
     Dim CurrUser As LoginInfo
 
     ' ประกาศ Structure สำหรับเก็บข้อมูล Warning
@@ -69,11 +66,12 @@ Public Class Main_Form
 
     End Class
     Public Class YourDataStructure
-        Public Property FeedNo As String
-        Public Property FeedType As String
-        Public Property McNo As String
+        Public Property FeederID As String
+        Public Property FeederType As String
+        Public Property McID As String
         Public Property McName As String
     End Class
+
     Public Class FeederInfo
         Public FeederInfo As FeederInfo
         Public FeederRead As Boolean
@@ -111,8 +109,6 @@ Public Class Main_Form
     Private tcCt_Main As Object
     Private btSave1 As Object
     Private btRefresh2 As Object
-
-
 #End Region
 
 
@@ -140,7 +136,7 @@ Public Class Main_Form
         End If
 
         WriteLog("Getting McID Configuration")
-        LoadingErr = GetMcIDConfig(McID)
+        LoadingErr = GetMcIDConfig(GenericModule.McID)
 
         If ConfigList IsNot Nothing AndAlso CurIdx > 0 Then
             Dim FeedType, McName As String
@@ -152,9 +148,9 @@ Public Class Main_Form
                 If Regex.IsMatch(FeedNo, "Mcidpattern", RegexOptions.IgnoreCase) Then
                     Dim McIDCounter As Integer = Integer.Parse(FeedType)
                     McIDCounter += 1
-                    McID = McIDCounter
-                    SetupNewPattern("McIDPattern", McNO, McID)
-                    WriteLog("Config Found : McIDPattern =" & vbTab & McID)
+                    GenericModule.McID = McIDCounter
+                    SetupNewPattern("McIDPattern", McNO, GenericModule.McID)
+                    WriteLog("Config Found : McIDPattern =" & vbTab & GenericModule.McID)
                     Continue For
                 End If
             Next
@@ -194,13 +190,13 @@ Public Class Main_Form
                     LoadingErr = "Template File Transfer Error" & vbCr & ex.Message
                 End Try
             Else
-                LoadingErr = "No Configuration found (McID= " & McID & ")"
+                LoadingErr = "No Configuration found (McID= " & GenericModule.McID & ")"
             End If
         End If
 
         ' Setup Form UI
-        lbHStaName.Text = GetMcName(McID)
-        Me.Text &= " - " & McID & "_" & lbHStaName.Text
+        lbHStaName.Text = GetMcName(GenericModule.McID)
+        Me.Text &= " - " & GenericModule.McID & "_" & lbHStaName.Text
 
         If LoadingErr = "" Then
             LoadDone = True
@@ -524,9 +520,9 @@ Public Class Main_Form
 
 
         CurrUser = New LoginInfo
-            CurrUser.UserName = ChkUser.UserName
-            CurrUser.SkillList = ChkUser.SkillList
-            CurrUser.LoginValid = True
+        CurrUser.UserName = ChkUser.UserName
+        CurrUser.SkillList = ChkUser.SkillList
+        CurrUser.LoginValid = True
 
         result = True
 
@@ -548,62 +544,111 @@ Public Class Main_Form
 
         ' จากนั้นคุณสามารถทำอย่างอื่น ๆ ตามต้องการ
     End Sub
+    Public Function TestFeeder(ByVal FdrID As Integer) As Object
+        ' Return "" if no error or return error message
+        Dim ResStr As String = ""
+        Dim DBconn As DBConnect
+        Dim SQLStr As String
+        Dim TmpDS As DataSet
+        Dim data As YourDataStructure = Nothing
 
-    ' Function to ReceivedData from the database
-    ' เช่น ถ้า "YourConnectionStringHere" เป็น "Data Source=YourServer;Initial Catalog=YourDatabase;User Id=YourUsername;Password=YourPassword;"
-    ' และ "YourTableName" เป็น "YourTable"
-    ' และ feederID เป็น "ZSY-2T6-0004716A"
+        Try
+            DBconn = New DBConnect
+            DBconn.ConnectionString = DB_ConnStr
+            DBconn.ConnectionType = DB_Type
 
-    Private Function ReceiveData(connectionString As String, storedProcedureName As String, scannerValue As String) As YourDataStructure
-        Using connection As New SqlConnection(connectionString)
-            Using command As New SqlCommand(storedProcedureName, connection)
-                command.CommandType = CommandType.StoredProcedure
+            SQLStr = "EXECUTE [dbo].[HANA_SP_Feeder_GetInfo] @pramFdrID = " & FdrID.ToString
+            TmpDS = DBconn.DataSet(SQLStr)
 
-                ' เพิ่มพารามิเตอร์
-                command.Parameters.AddWithValue("@pramFdrID", scannerValue)
+            If TmpDS.Tables IsNot Nothing AndAlso TmpDS.Tables.Count > 0 AndAlso TmpDS.Tables(0).Rows.Count > 0 Then
+                If CBool(TmpDS.Tables(0).Rows(0)(0)) Then
+                    ' Process data retrieval successfully
+                    ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
 
-                connection.Open()
-
-                ' ดึงข้อมูลจาก stored procedure และอ่านข้อมูล
-                Using reader As SqlDataReader = command.ExecuteReader()
-                    If reader.Read() Then
-                        ' สร้างอ็อบเจกต์ YourDataStructure และเติมข้อมูลจากฐานข้อมูล
-                        Dim data As New YourDataStructure()
-                        data.FeedNo = reader("FeedNo").ToString()
-                        data.FeedType = reader("FeedType").ToString()
-                        data.McNo = reader("McNo").ToString()
-                        data.McName = reader("McName").ToString()
-
-                        ' คืนค่าโครงสร้างข้อมูลที่ได้
-                        Return data
+                    ' Retrieve data from the database
+                    If TmpDS.Tables.Count > 1 AndAlso TmpDS.Tables(1).Rows.Count > 0 Then
+                        data = New YourDataStructure()
+                        data.FeederID = TmpDS.Tables(1).Rows(0)("FeederID").ToString()
+                        data.FeederType = TmpDS.Tables(1).Rows(0)("FeederType").ToString()
+                        data.McID = TmpDS.Tables(1).Rows(0)("McID").ToString()
+                        data.McName = TmpDS.Tables(1).Rows(0)("McName").ToString()
+                    Else
+                        ' No data found for Feeder
+                        ResStr = "Feeder not found in the database"
+                        ' Log the message
+                        WriteLog(ResStr)
                     End If
-                End Using
-            End Using
-        End Using
+                Else
+                    ' Data retrieval process failed
+                    ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
+                    ' Log the message
+                    WriteLog("Feeder not found in the database (" & ResStr & ")")
+                End If
+            Else
+                ' No data from SQL query
+                ResStr = "No Result Return from DB"
+                ' Log the message
+                WriteLog(" No Result Return from DB")
+            End If
+        Catch ex As Exception
+            ResStr = My.Resources.Warn_CatchErrorContactValor & vbCr & vbCr & ex.Message
+            ' Log the exception
+            WriteLog("Catch Error on Feeder Management" & vbCr & "ErrMsg= " & ex.Message)
+        End Try
 
-        ' คืนค่า Nothing ถ้าไม่พบข้อมูล
-        Return Nothing
+        Return If(data IsNot Nothing, data, ResStr)
     End Function
 
     Private Sub Btn_SendScan_Click(sender As Object, e As EventArgs) Handles Btn_SendScan.Click
-        Dim scannerValue As String = Txt_Scanner.Text.Trim
-        If scannerValue <> "" Then
-            Dim data As YourDataStructure = ReceiveData(connectionString, "HANA_SP_Feeder_GetInfo", scannerValue)
+        Try
+            Dim scannerValue As String = Txt_Scanner.Text.Trim
 
-            If data IsNot Nothing Then
-                Txt_FeedNo.Text = data.FeedNo
-                Txt_FeedType.Text = data.FeedType
-                Txt_McNo.Text = data.McNo
-                Txt_McName.Text = data.McName
+            ' Call the TestFeeder function to retrieve data
+            Dim result As Object = TestFeeder(Convert.ToInt32(scannerValue))
 
-                FeederSH.Text = data.FeedNo
+            If TypeOf result Is YourDataStructure Then
+                Dim data As YourDataStructure = DirectCast(result, YourDataStructure)
 
-                Txt_Scanner.Text = ""
+                ' Use Dictionary to map Column names to TextBoxes
+                Dim textBoxDictionary As New Dictionary(Of String, TextBox) From
+            {
+                {"FeederID", FeederID},
+                {"FeederType", FeederType},
+                {"McID", McID},
+                {"McName", McName}
+            }
+
+                ' Set values in TextBoxes based on Column names
+                For Each propInfo As PropertyInfo In GetType(YourDataStructure).GetProperties()
+                    Dim columnName As String = propInfo.Name
+                    If textBoxDictionary.ContainsKey(columnName) Then
+                        Dim textBox As TextBox = textBoxDictionary(columnName)
+
+                        ' Check if the TextBox is found
+                        If textBox IsNot Nothing Then
+                            ' Set value in TextBox
+                            Dim value As Object = propInfo.GetValue(data)
+                            Dim valueString As String = If(value IsNot Nothing, value.ToString(), "")
+                            textBox.Text = valueString
+                        End If
+                    End If
+                Next
+
+                ' Set value in FeederSH
+                FeederSH.Text = $"Feeder# {data.FeederID}"
+            Else
+                ' If the result is not YourDataStructure, show a necessary error message
+                MessageBox.Show($"Feeder not found in the database: {result}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             End If
-        End If
 
-        Txt_Scanner.Focus()
+            ' Focus on the TextBox used for scanning
+            Txt_Scanner.Focus()
+        Catch ex As Exception
+            ' Show an error message if there is another error
+            MessageBox.Show($"Error: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
+
 
     Private Sub btCtsend_Click(sender As Object, e As EventArgs) Handles btCtsend.Click
         Try
@@ -611,9 +656,9 @@ Public Class Main_Form
             Dim lineNotifyToken As String = "VuDC1CO0b7bULHMRHpakNnoN9Z0SY0mOzIwqNxdi9bq"
 
             WriteLog("Getting McID Configuration")
-            LoadingErr = GetMcIDConfig(McID)
+            LoadingErr = GetMcIDConfig(GenericModule.McID)
 
-            Dim message1 As String = $"Report{vbCrLf}FeederID: {Txt_Scanner.Text}{vbCrLf}" & $"McID: {McID}{vbCrLf}{vbCrLf}" & $"Issue: {IssueBox.Text}{vbCrLf}" & $"Other: {IssueText.Text}"
+            Dim message1 As String = $"Report{vbCrLf}FeederID: {Txt_Scanner.Text}{vbCrLf}" & $"McID: {GenericModule.McID}{vbCrLf}{vbCrLf}" & $"Issue: {IssueBox.Text}{vbCrLf}" & $"Other: {IssueText.Text}"
 
 
             If String.IsNullOrEmpty(message1) Then
@@ -621,7 +666,7 @@ Public Class Main_Form
                 Return
             End If
 
-            ' สร้างคำสั่งสำหรับส่งข้อความ
+
             Dim startInfo As New ProcessStartInfo()
             startInfo.FileName = "curl"
             startInfo.Arguments = $"-X POST -H ""Authorization: Bearer {lineNotifyToken}"" -F ""message={message1}"" https://notify-api.line.me/api/notify"
@@ -647,5 +692,44 @@ Public Class Main_Form
             MsgBox("เกิดข้อผิดพลาด: " & ex.Message)
         End Try
     End Sub
+
+    Private Sub btCt_Save_Click_1(sender As Object, e As EventArgs) Handles btCt_Save.Click
+        Dim confirmationResult As DialogResult = MessageBox.Show("คุณต้องการบันทึกข้อมูลใช่หรือไม่?", "ยืนยัน", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+
+        If confirmationResult = DialogResult.Yes Then
+            Try
+                ' สร้าง Connection String
+                Dim connectionString As String = "Data Source=NB-SPARE-13;Initial Catalog=FeederM1;Integrated Security=True"
+
+                ' สร้าง SqlConnection โดยใช้ Connection String
+                Using connection As New SqlConnection(connectionString)
+                    connection.Open()
+
+                    ' สร้าง SqlCommand โดยใช้ stored procedure ที่เซ็ตไว้ใน cmd.CommandText
+                    Using cmd As New SqlCommand("INSERT * FROM FeederData WHERE FeedNo = @pramFdrID", connection)
+                        cmd.CommandType = CommandType.StoredProcedure
+
+                        ' เพิ่มพารามิเตอร์และค่าที่จะส่งไปยัง stored procedure
+                        cmd.Parameters.AddWithValue("@FeedNo", Txt_FeedNo.Text)
+                        cmd.Parameters.AddWithValue("@FeedType", Txt_FeedType.Text)
+                        cmd.Parameters.AddWithValue("@McNo", Txt_McNo.Text)
+                        cmd.Parameters.AddWithValue("@McName", Txt_McName.Text)
+
+                        ' ประมวลผล stored procedure
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End Using
+
+                MessageBox.Show("บันทึกข้อมูลเรียบร้อย", "สถานะ", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Catch ex As Exception
+                ' จัดการข้อผิดพลาดที่เกิดขึ้น
+                MessageBox.Show("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " & ex.Message, "ข้อผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
+    End Sub
+
+
+
+
 
 End Class
