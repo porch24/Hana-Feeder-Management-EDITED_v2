@@ -20,6 +20,7 @@ Public Class Main_Form
     Public Property Txt_McNo As Object
     Public Property Txt_McName As Object
     Public Property UpdateNote As Object
+    Public Property YourMcIDIntegerValue As Integer
     ' เปลี่ยน PalletInfo เป็น FeederInfo
     Private SetFeeder As FeederInfo
     Private FeederSet_FM As Object
@@ -86,6 +87,7 @@ Public Class Main_Form
     Dim ScanStrUpd As Integer = -1     ' Stores the link to the text box requiring an update; 1 = inspector, 2 = defect update, 3 = PUID (removes the need to multi-thread on scanner data recieved).
     Dim WarnCntDown As Integer = 0
     Dim MST_BgwSetup As BgwInfo
+
     Private Structure BgwInfo
         Dim BgwWorkMode As Integer
         '   Used to defnied which mode that bgwMain will process
@@ -497,7 +499,7 @@ Public Class Main_Form
                 NewLogin.UserName = txtUsername.Text.Trim
 
                 ' Check for user skill
-                If NewLogin.UserName = "089177" Then ' ตัวอย่างการตรวจสอบว่าเป็นตัวเลข 6 ตัว
+                If NewLogin.UserName Then ' ตัวอย่างการตรวจสอบว่าเป็นตัวเลข 6 ตัว
                     WarnData.ShowWarn = True
                     WarnData.WarnStr = My.Resources.Warn_MSSUserNoSkillRequired & " [" & SkillRequired.ToUpper & "]"
                     WarnData.WarnVis = 5
@@ -544,7 +546,7 @@ Public Class Main_Form
 
         ' จากนั้นคุณสามารถทำอย่างอื่น ๆ ตามต้องการ
     End Sub
-    Public Function TestFeeder(ByVal FdrID As Integer) As Object
+    Public Function ReceiveFeeder(ByVal FdrID As Integer) As Object
         ' Return "" if no error or return error message
         Dim ResStr As String = ""
         Dim DBconn As DBConnect
@@ -604,7 +606,7 @@ Public Class Main_Form
             Dim scannerValue As String = Txt_Scanner.Text.Trim
 
             ' Call the TestFeeder function to retrieve data
-            Dim result As Object = TestFeeder(Convert.ToInt32(scannerValue))
+            Dim result As Object = ReceiveFeeder(Convert.ToInt32(scannerValue))
 
             If TypeOf result Is YourDataStructure Then
                 Dim data As YourDataStructure = DirectCast(result, YourDataStructure)
@@ -658,7 +660,7 @@ Public Class Main_Form
             WriteLog("Getting McID Configuration")
             LoadingErr = GetMcIDConfig(GenericModule.McID)
 
-            Dim message1 As String = $"Report{vbCrLf}FeederID: {Txt_Scanner.Text}{vbCrLf}" & $"McID: {GenericModule.McID}{vbCrLf}{vbCrLf}" & $"Issue: {IssueBox.Text}{vbCrLf}" & $"Other: {IssueText.Text}"
+            Dim message1 As String = $"Report{vbCrLf}UpdateBy:{txtUsername.Text}{vbCrLf}FeederID: {Txt_Scanner.Text}{vbCrLf}" & $"McID: {GenericModule.McID}{vbCrLf}{vbCrLf}" & $"Issue: {IssueBox.Text}{vbCrLf}" & $"Other: {IssueText.Text}"
 
 
             If String.IsNullOrEmpty(message1) Then
@@ -684,7 +686,6 @@ Public Class Main_Form
             MsgBox($"ส่งข้อความสำเร็จ")
 
             ' เคลียร์ข้อความในช่อง
-            Txt_Scanner.Text = ""
             IssueBox.Text = ""
             IssueText.Text = ""
         Catch ex As Exception
@@ -693,43 +694,74 @@ Public Class Main_Form
         End Try
     End Sub
 
-    Private Sub btCt_Save_Click_1(sender As Object, e As EventArgs) Handles btCt_Save.Click
-        Dim confirmationResult As DialogResult = MessageBox.Show("คุณต้องการบันทึกข้อมูลใช่หรือไม่?", "ยืนยัน", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
-
-        If confirmationResult = DialogResult.Yes Then
-            Try
-                ' สร้าง Connection String
-                Dim connectionString As String = "Data Source=NB-SPARE-13;Initial Catalog=FeederM1;Integrated Security=True"
-
-                ' สร้าง SqlConnection โดยใช้ Connection String
-                Using connection As New SqlConnection(connectionString)
-                    connection.Open()
-
-                    ' สร้าง SqlCommand โดยใช้ stored procedure ที่เซ็ตไว้ใน cmd.CommandText
-                    Using cmd As New SqlCommand("INSERT * FROM FeederData WHERE FeedNo = @pramFdrID", connection)
-                        cmd.CommandType = CommandType.StoredProcedure
-
-                        ' เพิ่มพารามิเตอร์และค่าที่จะส่งไปยัง stored procedure
-                        cmd.Parameters.AddWithValue("@FeedNo", Txt_FeedNo.Text)
-                        cmd.Parameters.AddWithValue("@FeedType", Txt_FeedType.Text)
-                        cmd.Parameters.AddWithValue("@McNo", Txt_McNo.Text)
-                        cmd.Parameters.AddWithValue("@McName", Txt_McName.Text)
-
-                        ' ประมวลผล stored procedure
-                        cmd.ExecuteNonQuery()
-                    End Using
-                End Using
-
-                MessageBox.Show("บันทึกข้อมูลเรียบร้อย", "สถานะ", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            Catch ex As Exception
-                ' จัดการข้อผิดพลาดที่เกิดขึ้น
-                MessageBox.Show("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " & ex.Message, "ข้อผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            End Try
+    Private Function GetFeederID() As Integer
+        If Not String.IsNullOrEmpty(Txt_Scanner.Text) Then
+            Return Integer.Parse(Txt_Scanner.Text)
+        Else
+            Return 0
         End If
+    End Function
+
+    Private Function GetUpdateBy() As String
+        Return txtUsername.Text
+    End Function
+
+    Private Sub btCt_Save_Click_1(sender As Object, e As EventArgs) Handles btCt_Save.Click
+        Try
+
+            Dim feederID As Integer = GetFeederID()
+            Dim mcID As Integer = 1199
+            Dim updateBy As String = GetUpdateBy()
+            Dim result = UpdateFeeder(feederID, mcID, updateBy)
+
+            If TypeOf result Is YourDataStructure Then
+                MessageBox.Show($"Error: {result}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Else
+                MessageBox.Show("บันทึกข้อมูลเรียบร้อย", "สถานะ", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            End If
+        Catch ex As Exception
+            MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
 
+    Public Function UpdateFeeder(ByVal feederId As Integer, ByVal McID As Integer, ByVal UpdateBy As String) As Object
+        ' Return "" if no error or return error message
+        Dim ResStr As String = ""
+        Dim DBconn As DBConnect
+        Dim SQLStr As String
+        Dim TmpDS As DataSet
+        Dim data As YourDataStructure = Nothing
+
+        Try
+            DBconn = New DBConnect
+            DBconn.ConnectionString = DB_ConnStr
+            DBconn.ConnectionType = DB_Type
 
 
+            SQLStr = $"EXECUTE [dbo].[HANA_SP_Feeder_UpdateMcID] @pramFdrID = {feederId}, @pramMcID = {McID}, @pramUpdateBy = '{UpdateBy}'"
+            TmpDS = DBconn.DataSet(SQLStr)
+
+            If TmpDS.Tables IsNot Nothing AndAlso TmpDS.Tables.Count > 0 AndAlso TmpDS.Tables(0).Rows.Count > 0 Then
+                If CBool(TmpDS.Tables(0).Rows(0)(0)) Then
+                    ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
+                    WriteLog($"Data for Feeder ID {feederId} updated by {UpdateBy}.")
+                    Return If(data IsNot Nothing, data, "Update successful")
+                Else
+                    ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
+                    WriteLog("Feeder not found in the database (" & ResStr & ")")
+                    Return ResStr
+                End If
+            Else
+                ResStr = "No Result Return from DB"
+                WriteLog(ResStr)
+                Return ResStr
+            End If
+
+        Catch ex As Exception
+            WriteLog($"Catch Error on Feeder Management{vbCr}ErrMsg= {ex.Message}")
+            Return $"Error: {ex.Message}"
+        End Try
+    End Function
 
 
 End Class
