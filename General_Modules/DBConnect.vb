@@ -6,6 +6,7 @@ Imports System.Configuration
 'Imports System.Data.OracleClient
 Imports System.Data.Odbc
 Imports System.Data.Odbc.OdbcConnection
+Imports System.Data.SqlClient
 
 Public Class DBConnect
 #Region "Private Instance Fields"
@@ -303,8 +304,12 @@ Public Class DBConnect
         idbConn = Nothing
 
     End Function
+
+    Friend Function Connection() As SqlConnection
+        Throw New NotImplementedException()
+    End Function
 #End Region
 
-    
+
 
 End Class
