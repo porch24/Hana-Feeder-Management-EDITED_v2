@@ -21,6 +21,7 @@ Public Class Main_Form
     Public Property Txt_McName As Object
     Public Property UpdateNote As Object
     Public Property YourMcIDIntegerValue As Integer
+    Public Property IssueIdTextBox As Object
     ' เปลี่ยน PalletInfo เป็น FeederInfo
     Private SetFeeder As FeederInfo
     Private FeederSet_FM As Object
@@ -36,6 +37,12 @@ Public Class Main_Form
     Dim TemplatePath As String
     Dim SkillReqNewPal As String = "Feeder Management"
     Dim CurrUser As LoginInfo
+    Dim MST_IssSetup As DataTable
+
+    Public Structure IssReqResult
+        Dim IsErr As Boolean
+        Dim ResultMsg As String
+    End Structure
 
     ' ประกาศ Structure สำหรับเก็บข้อมูล Warning
 #Region "Must Defined Variables"
@@ -196,6 +203,22 @@ Public Class Main_Form
             End If
         End If
 
+        'Load Issue Setup List From DB
+        MST_IssSetup = GetIssueSetupList()
+        'Validate if MST_IssSetup is not null
+        If MST_IssSetup Is Nothing OrElse MST_IssSetup.Rows.Count <= 0 Then
+            LoadingErr = "เกิดข้อผิดพลาดขณะโหลดข้อมูล Issue Setup" & vbCr & "กรุณาติดต่อ Valor#420 (LPN1)"
+        Else
+            IssueBox.Items.Clear()
+            'Loop column IssueName in MST_IssSetup into IssueBox
+            If MST_IssSetup IsNot Nothing AndAlso MST_IssSetup.Rows.Count > 0 Then
+                For Each row As DataRow In MST_IssSetup.Rows
+                    IssueBox.Items.Add(row("Issue_Name").ToString())
+                Next
+            End If
+        End If
+
+
         ' Setup Form UI
         lbHStaName.Text = GetMcName(GenericModule.McID)
         Me.Text &= " - " & GenericModule.McID & "_" & lbHStaName.Text
@@ -293,6 +316,8 @@ Public Class Main_Form
 
         Return result
     End Function
+
+
 
     ' ฟังก์ชันแสดง Warning
     Public Sub ShowWarning(ByVal WarnStr As String, ByVal WarnVis As Integer, ByVal WarnCol As Integer)
@@ -650,118 +675,231 @@ Public Class Main_Form
             MessageBox.Show($"Error: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
-
+    Private Sub IssueBox_SelectedIndexChanged(sender As Object, e As EventArgs) Handles IssueBox.SelectedIndexChanged
+        If IssueBox.SelectedItem IsNot Nothing Then
+            Dim selectedIssueName As String = IssueBox.SelectedItem.ToString()
+            IssueText.Enabled = (selectedIssueName = "Other")
+            If Not IssueText.Enabled Then
+                IssueText.Text = ""
+            End If
+        End If
+    End Sub
 
     Private Sub btCtsend_Click(sender As Object, e As EventArgs) Handles btCtsend.Click
         Try
             ' กำหนด Token ของ Line Notify ที่นี่
             Dim lineNotifyToken As String = "VuDC1CO0b7bULHMRHpakNnoN9Z0SY0mOzIwqNxdi9bq"
 
-            WriteLog("Getting McID Configuration")
-            LoadingErr = GetMcIDConfig(GenericModule.McID)
+            ' ดึงข้อมูล IssueSetup จากฐานข้อมูล
+            Dim issueSetupTable As DataTable = GetIssueSetupList()
 
-            Dim message1 As String = $"Report{vbCrLf}UpdateBy:{txtUsername.Text}{vbCrLf}FeederID: {Txt_Scanner.Text}{vbCrLf}" & $"McID: {GenericModule.McID}{vbCrLf}{vbCrLf}" & $"Issue: {IssueBox.Text}{vbCrLf}" & $"Other: {IssueText.Text}"
+            ' ค้นหาแถวใน IssueSetup ที่สอดคล้องกับ issue name ที่เลือก
+            Dim selectedIssueName As String = If(IssueBox.SelectedItem IsNot Nothing, IssueBox.SelectedItem.ToString(), "")
 
-
-            If String.IsNullOrEmpty(message1) Then
-                MsgBox("กรุณาใส่ข้อความทั้งสองก่อนครับ")
+            ' ตรวจสอบว่า IssueBox ถูกเลือกหรือไม่
+            If String.IsNullOrEmpty(selectedIssueName) Then
+                MsgBox("กรุณาเลือก Issue ก่อนดำเนินการ")
                 Return
             End If
 
+            ' ดึงข้อมูล IssueSetup ที่ตรงกับ IssueId ที่ผู้ใช้เลือก
+            Dim selectedIssueRow As DataRow = issueSetupTable.AsEnumerable().FirstOrDefault(Function(row) row.Field(Of String)("Issue_name") = selectedIssueName)
 
-            Dim startInfo As New ProcessStartInfo()
-            startInfo.FileName = "curl"
-            startInfo.Arguments = $"-X POST -H ""Authorization: Bearer {lineNotifyToken}"" -F ""message={message1}"" https://notify-api.line.me/api/notify"
-            startInfo.RedirectStandardOutput = True
-            startInfo.UseShellExecute = False
-            startInfo.CreateNoWindow = True
+            ' ตรวจสอบ selectedIssueRow
+            If selectedIssueRow IsNot Nothing Then
+                ' ตรวจสอบ Auto_Alert
+                Dim autoAlert As Boolean = selectedIssueRow.Field(Of Boolean)("Auto_Alert")
 
-            Using process As Process = Process.Start(startInfo)
-                Using reader As StreamReader = process.StandardOutput
-                    Dim result As String = reader.ReadToEnd()
-                    Console.WriteLine($"Response from Line Notify API: {result}")
-                End Using
-            End Using
+                ' ตรวจสอบ RequiredNote
+                Dim requiredNote As Boolean = selectedIssueRow.Field(Of Boolean)("RequiredNote")
 
-            MsgBox($"ส่งข้อความสำเร็จ")
+                ' เรียกใช้ฟังก์ชั่น SendNewIssueRequest เพื่อเพิ่มข้อมูลลงใน store
+                Dim feederID As Integer
+                Dim McID As Integer = 1199
 
-            ' เคลียร์ข้อความในช่อง
-            IssueBox.Text = ""
-            IssueText.Text = ""
+                If Not Integer.TryParse(Txt_Scanner.Text, feederID) Then
+                    MsgBox("FeederID must be a valid integer.")
+                    Return
+                End If
+
+                Dim updateBy As String = txtUsername.Text
+
+                ' สร้างข้อความที่จะส่งใน Line Notify
+                Dim remark As String = If(requiredNote, $"{IssueBox.Text} - {IssueText.Text}", IssueBox.Text)
+                Dim issueName As String = selectedIssueRow.Field(Of String)("Issue_name")
+                Dim issueRemark As String = selectedIssueRow.Field(Of String)("Issue_Remark")
+
+                ' ดึงข้อมูล IssueSetup ที่ตรงกับ IssueId ที่ผู้ใช้เลือก
+                Dim issueId As Integer = selectedIssueRow.Field(Of Integer)("Issue_ID")
+
+                ' เรียกใช้ฟังก์ชัน SendNewIssueRequest เพื่อส่งข้อมูลไปยัง store และบันทึกข้อมูลลงใน store
+                If autoAlert Then
+                    Dim sendResult As IssReqResult = SendNewIssueRequest(feederID, McID, updateBy, issueId, issueName, issueRemark, remark)
+
+                    ' ตรวจสอบผลลัพธ์จากการเรียกใช้ฟังก์ชั่น SendNewIssueRequest
+                    If sendResult.IsErr Then
+                        MsgBox($"Error sending message to Line Notify: {sendResult.ResultMsg}")
+                    Else
+
+                        Dim startInfo As New ProcessStartInfo()
+                        startInfo.FileName = "curl"
+                        Dim lineNotifyMessage As String =
+                        $"Feeder ID: {feederID}, " & vbCrLf &
+                        $"McID: {McID}, " & vbCrLf &
+                        $"Update By: {updateBy}, " & vbCrLf &
+                        $"Issue ID: {issueId}, " & vbCrLf &
+                        $"Issue Name: {issueName}, " & vbCrLf &
+                        $"Issue Remark: {issueRemark}, " & vbCrLf &
+                        $"Remark: {remark}"
+
+                        startInfo.Arguments = $"-X POST -H ""Authorization: Bearer {lineNotifyToken}"" -F ""message={lineNotifyMessage}"" https://notify-api.line.me/api/notify"
+                        startInfo.RedirectStandardOutput = True
+                        startInfo.UseShellExecute = False
+                        startInfo.CreateNoWindow = True
+                        Using process As Process = Process.Start(startInfo)
+                            Using reader As StreamReader = process.StandardOutput
+                                Dim result As String = reader.ReadToEnd()
+                                Console.WriteLine($"Response from Line Notify API: {result}")
+                            End Using
+                        End Using
+
+                        MsgBox($"ส่งข้อความสำเร็จ และบันทึกข้อมูลลงใน store")
+                    End If
+                Else
+                    MsgBox($"บันทึกข้อมูลลงใน store")
+                End If
+            Else
+                MsgBox("ไม่พบข้อมูล IssueSetup สำหรับ Issue ที่เลือก")
+            End If
+
         Catch ex As Exception
             Console.WriteLine($"Error sending message to Line Notify: {ex.Message}")
             MsgBox("เกิดข้อผิดพลาด: " & ex.Message)
         End Try
     End Sub
 
-    Private Function GetFeederID() As Integer
-        If Not String.IsNullOrEmpty(Txt_Scanner.Text) Then
-            Return Integer.Parse(Txt_Scanner.Text)
-        Else
-            Return 0
-        End If
-    End Function
 
-    Private Function GetUpdateBy() As String
-        Return txtUsername.Text
-    End Function
+    Private Function SendNewIssueRequest(ByVal FeederID As Integer, ByVal McID As Integer, ByVal UpdateBy As String, ByVal IssueID As Integer, ByVal IssueName As String, ByVal IssueRemark As String, ByVal Remark As String) As IssReqResult
+        Dim result As New IssReqResult
 
-    Private Sub btCt_Save_Click_1(sender As Object, e As EventArgs) Handles btCt_Save.Click
         Try
+            Dim DBconn As DBConnect = SetupNewDBConnect(DB_ConnStr)
 
-            Dim feederID As Integer = GetFeederID()
-            Dim mcID As Integer = 1199
-            Dim updateBy As String = GetUpdateBy()
-            Dim result = UpdateFeeder(feederID, mcID, updateBy)
+            Dim SQLStr As String = $"EXEC HANA_SP_Feeder_NewIssue " &
+            $"@pramFdrID={FeederID}," &
+            $"@pramActBY='{UpdateBy}'," &
+            $"@pramIssID={IssueID}," &
+            $"@pramMcID={McID}," &
+            $"@pramRmk='{Remark}'"
 
-            If TypeOf result Is YourDataStructure Then
-                MessageBox.Show($"Error: {result}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Else
-                MessageBox.Show("บันทึกข้อมูลเรียบร้อย", "สถานะ", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            End If
+            Dim TmpDS As DataSet = DBconn.DataSet(SQLStr)
+
+            For Each row As DataRow In TmpDS.Tables(0).Rows
+                result.IsErr = If(row(0), False, True)
+                result.ResultMsg = row(1).ToString()
+            Next
         Catch ex As Exception
-            MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            result.IsErr = True
+            result.ResultMsg = $"Catch Error: {ex.Message}{vbCr}StackTrace: {ex.StackTrace}"
         End Try
-    End Sub
 
-    Public Function UpdateFeeder(ByVal feederId As Integer, ByVal McID As Integer, ByVal UpdateBy As String) As Object
-        ' Return "" if no error or return error message
-        Dim ResStr As String = ""
-        Dim DBconn As DBConnect
-        Dim SQLStr As String
+        Return result
+    End Function
+
+
+    Private Function GetIssueSetupList() As DataTable
+        Dim SQLstr As String
         Dim TmpDS As DataSet
-        Dim data As YourDataStructure = Nothing
+        Dim DBconn As DBConnect
+        Dim result As DataTable = Nothing
 
         Try
             DBconn = New DBConnect
             DBconn.ConnectionString = DB_ConnStr
             DBconn.ConnectionType = DB_Type
 
-
-            SQLStr = $"EXECUTE [dbo].[HANA_SP_Feeder_UpdateMcID] @pramFdrID = {feederId}, @pramMcID = {McID}, @pramUpdateBy = '{UpdateBy}'"
-            TmpDS = DBconn.DataSet(SQLStr)
+            SQLstr = "SELECT * FROM Hana_Feeder_IssueSetup"
+            TmpDS = DBconn.DataSet(SQLstr)
 
             If TmpDS.Tables IsNot Nothing AndAlso TmpDS.Tables.Count > 0 AndAlso TmpDS.Tables(0).Rows.Count > 0 Then
-                If CBool(TmpDS.Tables(0).Rows(0)(0)) Then
-                    ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
-                    WriteLog($"Data for Feeder ID {feederId} updated by {UpdateBy}.")
-                    Return If(data IsNot Nothing, data, "Update successful")
-                Else
-                    ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
-                    WriteLog("Feeder not found in the database (" & ResStr & ")")
-                    Return ResStr
-                End If
-            Else
-                ResStr = "No Result Return from DB"
-                WriteLog(ResStr)
-                Return ResStr
+                result = TmpDS.Tables(0)
             End If
-
         Catch ex As Exception
-            WriteLog($"Catch Error on Feeder Management{vbCr}ErrMsg= {ex.Message}")
-            Return $"Error: {ex.Message}"
+            WriteLog("Catch Error on GetIssueSetupList" & vbCr & "ErrMsg= " & ex.Message)
         End Try
+
+        Return result
     End Function
 
+    Private Function GetFeederID() As Integer
+            If Not String.IsNullOrEmpty(Txt_Scanner.Text) Then
+                Return Integer.Parse(Txt_Scanner.Text)
+            Else
+                Return 0
+            End If
+        End Function
 
-End Class
+        Private Function GetUpdateBy() As String
+            Return txtUsername.Text
+        End Function
+
+        Private Sub btCt_Save_Click_1(sender As Object, e As EventArgs) Handles btCt_Save.Click
+            Try
+
+                Dim feederID As Integer = GetFeederID()
+                Dim mcID As Integer = 1199
+                Dim updateBy As String = GetUpdateBy()
+                Dim result = UpdateFeeder(feederID, mcID, updateBy)
+
+                If TypeOf result Is YourDataStructure Then
+                    MessageBox.Show($"Error: {result}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Else
+                    MessageBox.Show("บันทึกข้อมูลเรียบร้อย", "สถานะ", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                End If
+            Catch ex As Exception
+            MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+        End Sub
+
+        Public Function UpdateFeeder(ByVal feederId As Integer, ByVal McID As Integer, ByVal UpdateBy As String) As Object
+            ' Return "" if no error or return error message
+            Dim ResStr As String = ""
+            Dim DBconn As DBConnect
+            Dim SQLStr As String
+            Dim TmpDS As DataSet
+            Dim data As YourDataStructure = Nothing
+
+            Try
+                DBconn = New DBConnect
+                DBconn.ConnectionString = DB_ConnStr
+                DBconn.ConnectionType = DB_Type
+
+
+                SQLStr = $"EXECUTE [dbo].[HANA_SP_Feeder_UpdateMcID] @pramFdrID = {feederId}, @pramMcID = {McID}, @pramUpdateBy = '{UpdateBy}'"
+                TmpDS = DBconn.DataSet(SQLStr)
+
+                If TmpDS.Tables IsNot Nothing AndAlso TmpDS.Tables.Count > 0 AndAlso TmpDS.Tables(0).Rows.Count > 0 Then
+                    If CBool(TmpDS.Tables(0).Rows(0)(0)) Then
+                        ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
+                        WriteLog($"Data for Feeder ID {feederId} updated by {UpdateBy}.")
+                        Return If(data IsNot Nothing, data, "Update successful")
+                    Else
+                        ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
+                        WriteLog("Feeder not found in the database (" & ResStr & ")")
+                        Return ResStr
+                    End If
+                Else
+                    ResStr = "No Result Return from DB"
+                    WriteLog(ResStr)
+                    Return ResStr
+                End If
+
+            Catch ex As Exception
+                WriteLog($"Catch Error on Feeder Management{vbCr}ErrMsg= {ex.Message}")
+                Return $"Error: {ex.Message}"
+            End Try
+        End Function
+
+
+
+    End Class
