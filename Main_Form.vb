@@ -857,8 +857,8 @@ Public Class Main_Form
                     MessageBox.Show("บันทึกข้อมูลเรียบร้อย", "สถานะ", MessageBoxButtons.OK, MessageBoxIcon.Information)
                 End If
             Catch ex As Exception
-                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            End Try
+            MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
         End Sub
 
         Public Function UpdateFeeder(ByVal feederId As Integer, ByVal McID As Integer, ByVal UpdateBy As String) As Object
