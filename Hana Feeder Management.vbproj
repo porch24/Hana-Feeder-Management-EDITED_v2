@@ -109,6 +109,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationEvents.vb" />
+    <Compile Include="FrmUpdate.Designer.vb">
+      <DependentUpon>FrmUpdate.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmUpdate.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="General_Modules\DBConnect.vb" />
     <Compile Include="General_Modules\GenericModule.vb" />
     <Compile Include="General_Modules\IShellWindows.vb" />
@@ -139,6 +145,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="FrmUpdate.resx">
+      <DependentUpon>FrmUpdate.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Main_Form.resx">
       <DependentUpon>Main_Form.vb</DependentUpon>
     </EmbeddedResource>
@@ -194,7 +203,12 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Resources\hana_log.jpg" />
+    <Content Include="Resources\MSS custom.bmp" />
+    <Content Include="Resources\UpdateNote.txt" />
+    <Content Include="Resources\warning_attention_notification_caution_priority_high_alert_sticker_icon_258419.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
