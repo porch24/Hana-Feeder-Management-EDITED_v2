@@ -4,13 +4,13 @@ Imports System.Text.RegularExpressions
 Imports Hana_Feeder_Management
 Imports System.Windows.Forms
 Imports System.Windows.Forms.Timer
-Imports System.Data.SqlClient ' Import the necessary namespace for SQL Server
+Imports System.Data.SqlClient
 Imports System.Text
 Imports System.Net
 Imports System.Diagnostics
 Imports System.Reflection
 Public Class Main_Form
-    ' ประกาศตัวแปรแบบ Public สำหรับใช้ในทั้ง Class
+
     Public Property Txt_FeederList As Object
     Public Property Txt_ScannedStatus As Object
     Public Property CurIdx As Integer
@@ -22,13 +22,13 @@ Public Class Main_Form
     Public Property UpdateNote As Object
     Public Property YourMcIDIntegerValue As Integer
     Public Property IssueIdTextBox As Object
-    ' เปลี่ยน PalletInfo เป็น FeederInfo
+    Private scanCompleted As Boolean = False
     Private SetFeeder As FeederInfo
     Private FeederSet_FM As Object
     Private loggedIn As Boolean = False
-    Private txtFeederInfo As TextBox ' ตัวแปร TextBox ที่ใช้แสดงข้อมูล Feeder
+    Private txtFeederInfo As TextBox
 
-    ' ประกาศตัวแปร SkillRequired สำหรับใช้กำหนดความสามารถที่ต้องการ
+    Dim UpdateFM As frmUpdate
     Dim SkillRequired As String = ""
     Dim LoadDone As Boolean = False
     Dim LoadingErr As String = ""
@@ -123,7 +123,7 @@ Public Class Main_Form
 
 
 #Region "Global_Warning Functions"
-    ' Event Handler สำหรับ Load Form
+
     Private Sub Main_Form_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         '### MUST BE DEFINED TO AVOID CROSS THREAD ERROR
         System.Windows.Forms.Control.CheckForIllegalCrossThreadCalls = False
@@ -230,7 +230,6 @@ Public Class Main_Form
     End Sub
 #End Region
 
-    ' Event Handler สำหรับ Form ที่ถูกแสดงขึ้น
     Private Sub Main_Form_Shown(sender As Object, e As EventArgs) Handles Me.Shown
         ' This Sub will be called after MainForm Loaded
         If LoadDone Then
@@ -250,24 +249,12 @@ Public Class Main_Form
             Application.Exit()
         End If
     End Sub
-    ' Event Handler สำหรับปิด Form
+
     Private Sub Main_Form_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         Try
             My.Settings.Save()
         Catch
         End Try
-    End Sub
-    Private Sub btUpdNote_Click(sender As Object, e As EventArgs) Handles btUpdNote.Click
-        Dim updateNotePath As String = "Resources\UpdateNote.txt" ' ระบุ path ของไฟล์ UpdateNote ที่ต้องการเปิด
-
-        ' ตรวจสอบว่าไฟล์ UpdateNote มีอยู่หรือไม่
-        If File.Exists(updateNotePath) Then
-            ' ใช้ Process.Start เพื่อเปิดไฟล์ด้วยโปรแกรมที่เปิดได้ (เช่น Notepad)
-            Process.Start(updateNotePath)
-        Else
-            ' แสดงคำเตือนหากไฟล์ UpdateNote ไม่มีอยู่
-            MessageBox.Show("The UpdateNote file is not found.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-        End If
     End Sub
 
     Private Sub Txt_Scan_Enter(sender As Object, e As EventArgs) Handles Txt_Scanner.Enter
@@ -281,7 +268,7 @@ Public Class Main_Form
             Txt_Scanner.BackColor = Color.Yellow
         End If
     End Sub
-    ' Event Handler สำหรับเมื่อ Form ได้รับการ Activate
+
     Private Sub Main_Form_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
         If txtUsername.Text = "" Then
             txtUsername.Focus()
@@ -290,15 +277,12 @@ Public Class Main_Form
         End If
     End Sub
 
-
-    ' Event Handler สำหรับ KeyPress ของ txtUsername
     Private Sub txtUsername_keypass(sender As Object, e As KeyPressEventArgs) Handles txtUsername.KeyPress
         If e.KeyChar = Chr(13) And txtUsername.Text <> "" Then
             ' ทำงานเมื่อกด Enter
         End If
     End Sub
 
-    ' ฟังก์ชันตรวจสอบการ Logout
     Private Function ValidateLogout() As Boolean
         Dim result, NeedWarn As Boolean
 
@@ -317,9 +301,15 @@ Public Class Main_Form
         Return result
     End Function
 
+    Private Sub btUpdNote_Click(sender As Object, e As EventArgs) Handles btUpdNote.Click
+        If UpdateFM IsNot Nothing AndAlso UpdateFM.Visible Then
+            UpdateFM.Focus()
+        Else
+            UpdateFM = New frmUpdate
+            UpdateFM.Show()
+        End If
+    End Sub
 
-
-    ' ฟังก์ชันแสดง Warning
     Public Sub ShowWarning(ByVal WarnStr As String, ByVal WarnVis As Integer, ByVal WarnCol As Integer)
         Lab_AlertMsg.Visible = False
         Lab_AlertMsg.Text = WarnStr
@@ -336,7 +326,6 @@ Public Class Main_Form
         End Select
         Lab_AlertMsg.Visible = True
     End Sub
-    ' Event Handler สำหรับ Logout ผู้ใช้
     Private Sub UserLogout()
         'Clear Invoice Info.
         ResetForm()
@@ -353,9 +342,6 @@ Public Class Main_Form
         'Reset application state
         txtUsername.Focus()
     End Sub
-
-    ' ฟังก์ชันตรวจสอบการ Login
-    ' ฟังก์ชันแสดง Warning
     Public Sub ShowWarning()
         If WarnData.WarnStr IsNot Nothing Then
             Lab_AlertMsg.Visible = False
@@ -376,8 +362,6 @@ Public Class Main_Form
             Lab_AlertMsg.Visible = False
         End If
     End Sub
-
-    ' ฟังก์ชัน Login ผู้ใช้
     Public Sub UserLogin()
         'Disable login controls
         txtUsername.Enabled = False
@@ -387,8 +371,6 @@ Public Class Main_Form
         Txt_Scanner.Focus()
         ShowWarning("MSS User Login Successful", 5, 3)
     End Sub
-
-    ' Event Handler สำหรับ Reset Form
     Private Sub ResetForm(Optional ByVal SetMode As Integer = 0)
         Dim PrevLoad As Boolean = LoadDone
         LoadDone = False
@@ -403,7 +385,6 @@ Public Class Main_Form
 
         LoadDone = PrevLoad
     End Sub
-
     Private Sub SetFormLoading(ByVal SetVal As Boolean)
         ' ถ้า SetVal เป็น True แสดงว่าฟอร์มกำลังโหลดหรือบันทึกข้อมูล
         lbLoading.Visible = SetVal
@@ -417,18 +398,17 @@ Public Class Main_Form
         End If
     End Sub
 
-    ' ฟังก์ชันที่ใช้ในการอัปเดตสถานะการสแกนของ Feeder
     Private Sub UpdateFeederScanned(ByVal FeederID As String)
-        ' ตรวจสอบว่ามีข้อมูล Feeder ใน ListBox (หรือ ListView) หรือไม่
+
         If Txt_FeederList.Items.Count > 0 Then
-            ' วนลูปผ่าน Item ทุกตัวใน ListBox
+
             For Each item As Object In Txt_FeederList.Items
-                ' ตรวจสอบว่าข้อมูล Feeder ที่ตรงกับ FeederNo หรือไม่
+
                 If item.ToString().Contains(FeederID) Then
-                    ' เพิ่มเครื่องหมายถูกสแกน (หรือข้อความอื่นๆ ตามต้องการ) ลงใน TextBox ของสถานะการสแกน
+
                     Txt_ScannedStatus.AppendText($"Feeder {FeederID} ถูกสแกนแล้ว" & Environment.NewLine)
 
-                    ' ลบข้อมูล Feeder ที่ถูกสแกนออกจาก ListBox
+
                     Txt_FeederList.Items.Remove(item)
                     Exit For
                 End If
@@ -446,16 +426,15 @@ Public Class Main_Form
         End If
     End Sub
 
-    ' เป็นเหตุการณ์ที่เกิดขึ้นเมื่อ TextBox ได้รับการ focus (ถูกคลิกเพื่อใส่ข้อความ)
     Private Sub Txt_Scanner_Enter(sender As Object, e As EventArgs) Handles Txt_Scanner.Enter
-        ' ตรวจสอบว่า TextBox ไม่ใช่ระหว่างการอ่านอยู่
+
         If Not Txt_Scanner.ReadOnly Then
-            ' กำหนดสีพื้นหลังของ TextBox เป็นสีเขียว
+
             Txt_Scanner.BackColor = Color.LightGreen
         End If
     End Sub
 
-    ' เป็นเหตุการณ์ที่เกิดขึ้นเมื่อ TextBox ไม่ได้รับการ focus
+
     Private Sub Txt_Scanner_Leave(sender As Object, e As EventArgs) Handles Txt_Scanner.Leave
         ' ตรวจสอบว่า TextBox ไม่ใช่ระหว่างการอ่านอยู่
         If Not Txt_Scanner.ReadOnly Then
@@ -489,8 +468,7 @@ Public Class Main_Form
         End If
     End Sub
 
-    ' ฟังก์ชันนี้ใช้สำหรับหยุดหรือเริ่มการสแกน โดยการปรับค่า Enabled ของ Txt_Scanner
-    ' SetValue: True หมายถึงหยุดการสแกน, False หมายถึงเริ่มการสแกน
+
     Private Sub PauseScanning(ByVal SetValue As Boolean)
         Txt_Scanner.Enabled = Not SetValue
         If Txt_Scanner.Enabled Then
@@ -503,11 +481,12 @@ Public Class Main_Form
 
         End If
     End Sub
-
     Private Sub btnLogInOut_Click(sender As Object, e As EventArgs) Handles btnLogInOut.Click
         If btnLogInOut.Text = "Logout" Then
             If ValidateLogout() Then
                 UserLogout()
+                Btn_SendScan.Enabled = False
+                scanCompleted = False
             End If
         Else
             If (txtUsername.Text.Trim = "") Then
@@ -523,8 +502,8 @@ Public Class Main_Form
                 Dim NewLogin As New LoginInfo
                 NewLogin.UserName = txtUsername.Text.Trim
 
-                ' Check for user skill
-                If NewLogin.UserName Then ' ตัวอย่างการตรวจสอบว่าเป็นตัวเลข 6 ตัว
+
+                If NewLogin.UserName Then
                     WarnData.ShowWarn = True
                     WarnData.WarnStr = My.Resources.Warn_MSSUserNoSkillRequired & " [" & SkillRequired.ToUpper & "]"
                     WarnData.WarnVis = 5
@@ -538,9 +517,13 @@ Public Class Main_Form
                     ShowWarning()
                     txtUsername.Text = ""
                 End If
+
+                ' Enable Btn_SendScan when logging in
+                Btn_SendScan.Enabled = True
             End If
         End If
     End Sub
+
 
     Private Function ValidateLogin(ByVal ChkUser As LoginInfo) As Boolean
         Dim result, UserValid As Boolean
@@ -562,15 +545,6 @@ Public Class Main_Form
         Pan_Tmr2.BackColor = If(Pan_Tmr1.BackColor = Color.Red, Color.Yellow, Color.Red)
     End Sub
 
-    Private Sub btCt_Save_Click(sender As Object, e As EventArgs)
-        ' ดึงข้อมูลจาก TextBox แล้วเตรียมสำหรับการบันทึกลงในฐานข้อมูล
-        Dim dataToSave As String = IssueText.Text ' เปลี่ยนเป็น TextBox ที่ต้องการเซฟข้อมูล
-
-        ' เรียกฟังก์ชันหรือเมธอดที่ใช้ในการบันทึกข้อมูลลงในฐานข้อมูล
-        btCt_Save.Enabled = True
-
-        ' จากนั้นคุณสามารถทำอย่างอื่น ๆ ตามต้องการ
-    End Sub
     Public Function ReceiveFeeder(ByVal FdrID As Integer) As Object
         ' Return "" if no error or return error message
         Dim ResStr As String = ""
@@ -628,15 +602,19 @@ Public Class Main_Form
 
     Private Sub Btn_SendScan_Click(sender As Object, e As EventArgs) Handles Btn_SendScan.Click
         Try
+            'ให้ทำการ Log-in ก่อน
+            'If Not scanCompleted Then
+            'MessageBox.Show("Please login first", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            'Return
+            'End If
             Dim scannerValue As String = Txt_Scanner.Text.Trim
 
-            ' Call the TestFeeder function to retrieve data
             Dim result As Object = ReceiveFeeder(Convert.ToInt32(scannerValue))
 
             If TypeOf result Is YourDataStructure Then
                 Dim data As YourDataStructure = DirectCast(result, YourDataStructure)
 
-                ' Use Dictionary to map Column names to TextBoxes
+
                 Dim textBoxDictionary As New Dictionary(Of String, TextBox) From
             {
                 {"FeederID", FeederID},
@@ -645,15 +623,15 @@ Public Class Main_Form
                 {"McName", McName}
             }
 
-                ' Set values in TextBoxes based on Column names
+
                 For Each propInfo As PropertyInfo In GetType(YourDataStructure).GetProperties()
                     Dim columnName As String = propInfo.Name
                     If textBoxDictionary.ContainsKey(columnName) Then
                         Dim textBox As TextBox = textBoxDictionary(columnName)
 
-                        ' Check if the TextBox is found
+
                         If textBox IsNot Nothing Then
-                            ' Set value in TextBox
+
                             Dim value As Object = propInfo.GetValue(data)
                             Dim valueString As String = If(value IsNot Nothing, value.ToString(), "")
                             textBox.Text = valueString
@@ -661,36 +639,69 @@ Public Class Main_Form
                     End If
                 Next
 
-                ' Set value in FeederSH
+
                 FeederSH.Text = $"Feeder# {data.FeederID}"
+
+
+                scanCompleted = True
             Else
-                ' If the result is not YourDataStructure, show a necessary error message
+
                 MessageBox.Show($"Feeder not found in the database: {result}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             End If
 
-            ' Focus on the TextBox used for scanning
+
             Txt_Scanner.Focus()
+
         Catch ex As Exception
-            ' Show an error message if there is another error
+
             MessageBox.Show($"Error: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Sub btCt_Save_Click_1(sender As Object, e As EventArgs) Handles btCt_Save.Click
+
+        If Not scanCompleted Then
+            MessageBox.Show("Please perform the scan operation first.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
+        Try
+            Dim feederID As Integer = GetFeederID()
+            Dim mcID As Integer = 1199
+            Dim updateBy As String = GetUpdateBy()
+
+            Dim result = UpdateFeeder(feederID, mcID, updateBy)
+
+            If TypeOf result Is YourDataStructure Then
+                MessageBox.Show($"Error: {result}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Else
+                MessageBox.Show("บันทึกข้อมูลเรียบร้อย", "สถานะ", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            End If
+        Catch ex As Exception
+            MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
     Private Sub IssueBox_SelectedIndexChanged(sender As Object, e As EventArgs) Handles IssueBox.SelectedIndexChanged
         If IssueBox.SelectedItem IsNot Nothing Then
             Dim selectedIssueName As String = IssueBox.SelectedItem.ToString()
             IssueText.Enabled = (selectedIssueName = "Other")
+
             If Not IssueText.Enabled Then
                 IssueText.Text = ""
+            Else
             End If
         End If
     End Sub
 
     Private Sub btCtsend_Click(sender As Object, e As EventArgs) Handles btCtsend.Click
         Try
-            ' กำหนด Token ของ Line Notify ที่นี่
-            Dim lineNotifyToken As String = "VuDC1CO0b7bULHMRHpakNnoN9Z0SY0mOzIwqNxdi9bq"
+            Dim lineNotifyToken As String = "eUkf38TxSuewkpuEhbg8dNoouTCePJLD2eqMSbFq9jv"
 
-            ' ดึงข้อมูล IssueSetup จากฐานข้อมูล
+            If Not scanCompleted Then
+                MessageBox.Show("Please perform the scan operation first.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return
+            End If
+
             Dim issueSetupTable As DataTable = GetIssueSetupList()
 
             ' ค้นหาแถวใน IssueSetup ที่สอดคล้องกับ issue name ที่เลือก
@@ -698,7 +709,7 @@ Public Class Main_Form
 
             ' ตรวจสอบว่า IssueBox ถูกเลือกหรือไม่
             If String.IsNullOrEmpty(selectedIssueName) Then
-                MsgBox("กรุณาเลือก Issue ก่อนดำเนินการ")
+                MsgBox("กรุณาเลือก Issue ก่อนดำเนินการ", MessageBoxIcon.Warning)
                 Return
             End If
 
@@ -729,6 +740,12 @@ Public Class Main_Form
                 Dim issueName As String = selectedIssueRow.Field(Of String)("Issue_name")
                 Dim issueRemark As String = selectedIssueRow.Field(Of String)("Issue_Remark")
 
+                ' ตรวจสอบถ้าเลือก "Other" ให้ตรวจสอบ IssueText ด้วย
+                If selectedIssueName = "Other" AndAlso String.IsNullOrEmpty(IssueText.Text.Trim()) Then
+                    MsgBox("Please provide details in the 'Other' field.", MessageBoxIcon.Warning)
+                    Return
+                End If
+
                 ' ดึงข้อมูล IssueSetup ที่ตรงกับ IssueId ที่ผู้ใช้เลือก
                 Dim issueId As Integer = selectedIssueRow.Field(Of Integer)("Issue_ID")
 
@@ -738,18 +755,18 @@ Public Class Main_Form
 
                     ' ตรวจสอบผลลัพธ์จากการเรียกใช้ฟังก์ชั่น SendNewIssueRequest
                     If sendResult.IsErr Then
-                        MsgBox($"Error sending message to Line Notify: {sendResult.ResultMsg}")
+                        MsgBox($"Error sending message to Line Notify: {sendResult.ResultMsg}", MessageBoxIcon.Error)
                     Else
-
+                        ' ส่งข้อความ Line Notify
                         Dim startInfo As New ProcessStartInfo()
                         startInfo.FileName = "curl"
                         Dim lineNotifyMessage As String =
-                        $"Feeder ID: {feederID}, " & vbCrLf &
-                        $"McID: {McID}, " & vbCrLf &
-                        $"Update By: {updateBy}, " & vbCrLf &
-                        $"Issue ID: {issueId}, " & vbCrLf &
-                        $"Issue Name: {issueName}, " & vbCrLf &
-                        $"Issue Remark: {issueRemark}, " & vbCrLf &
+                        $"Feeder ID: {feederID}" & vbCrLf &
+                        $"McID: {McID}" & vbCrLf &
+                        $"Update By: {updateBy}" & vbCrLf &
+                        $"Issue ID: {issueId}" & vbCrLf &
+                        $"Issue Name: {issueName}" & vbCrLf &
+                        $"Issue Remark: {issueRemark}" & vbCrLf &
                         $"Remark: {remark}"
 
                         startInfo.Arguments = $"-X POST -H ""Authorization: Bearer {lineNotifyToken}"" -F ""message={lineNotifyMessage}"" https://notify-api.line.me/api/notify"
@@ -763,20 +780,22 @@ Public Class Main_Form
                             End Using
                         End Using
 
-                        MsgBox($"ส่งข้อความสำเร็จ และบันทึกข้อมูลลงใน store")
+                        MsgBox($"ส่งข้อความสำเร็จ และบันทึกข้อมูลลงใน store", MessageBoxIcon.Information)
                     End If
                 Else
-                    MsgBox($"บันทึกข้อมูลลงใน store")
+
+                    MsgBox($"บันทึกข้อมูลลงใน store", MessageBoxIcon.Information)
                 End If
             Else
-                MsgBox("ไม่พบข้อมูล IssueSetup สำหรับ Issue ที่เลือก")
+                MsgBox("ไม่พบข้อมูล IssueSetup สำหรับ Issue ที่เลือก", MessageBoxIcon.Warning)
             End If
 
         Catch ex As Exception
             Console.WriteLine($"Error sending message to Line Notify: {ex.Message}")
-            MsgBox("เกิดข้อผิดพลาด: " & ex.Message)
+            MsgBox($"เกิดข้อผิดพลาด: {ex.Message}", MessageBoxIcon.Error)
         End Try
     End Sub
+
 
 
     Private Function SendNewIssueRequest(ByVal FeederID As Integer, ByVal McID As Integer, ByVal UpdateBy As String, ByVal IssueID As Integer, ByVal IssueName As String, ByVal IssueRemark As String, ByVal Remark As String) As IssReqResult
@@ -805,7 +824,6 @@ Public Class Main_Form
 
         Return result
     End Function
-
 
     Private Function GetIssueSetupList() As DataTable
         Dim SQLstr As String
@@ -843,63 +861,43 @@ Public Class Main_Form
             Return txtUsername.Text
         End Function
 
-        Private Sub btCt_Save_Click_1(sender As Object, e As EventArgs) Handles btCt_Save.Click
-            Try
+    Public Function UpdateFeeder(ByVal feederId As Integer, ByVal McID As Integer, ByVal UpdateBy As String) As Object
 
-                Dim feederID As Integer = GetFeederID()
-                Dim mcID As Integer = 1199
-                Dim updateBy As String = GetUpdateBy()
-                Dim result = UpdateFeeder(feederID, mcID, updateBy)
+        Dim ResStr As String = ""
+        Dim DBconn As DBConnect
+        Dim SQLStr As String
+        Dim TmpDS As DataSet
+        Dim data As YourDataStructure = Nothing
 
-                If TypeOf result Is YourDataStructure Then
-                    MessageBox.Show($"Error: {result}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Try
+            DBconn = New DBConnect
+            DBconn.ConnectionString = DB_ConnStr
+            DBconn.ConnectionType = DB_Type
+
+
+            SQLStr = $"EXECUTE [dbo].[HANA_SP_Feeder_UpdateMcID] @pramFdrID = {feederId}, @pramMcID = {McID}, @pramUpdateBy = '{UpdateBy}'"
+            TmpDS = DBconn.DataSet(SQLStr)
+
+            If TmpDS.Tables IsNot Nothing AndAlso TmpDS.Tables.Count > 0 AndAlso TmpDS.Tables(0).Rows.Count > 0 Then
+                If CBool(TmpDS.Tables(0).Rows(0)(0)) Then
+                    ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
+                    WriteLog($"Data for Feeder ID {feederId} updated by {UpdateBy}.")
+                    Return If(data IsNot Nothing, data, "Update successful")
                 Else
-                    MessageBox.Show("บันทึกข้อมูลเรียบร้อย", "สถานะ", MessageBoxButtons.OK, MessageBoxIcon.Information)
-                End If
-            Catch ex As Exception
-            MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
-        End Sub
-
-        Public Function UpdateFeeder(ByVal feederId As Integer, ByVal McID As Integer, ByVal UpdateBy As String) As Object
-            ' Return "" if no error or return error message
-            Dim ResStr As String = ""
-            Dim DBconn As DBConnect
-            Dim SQLStr As String
-            Dim TmpDS As DataSet
-            Dim data As YourDataStructure = Nothing
-
-            Try
-                DBconn = New DBConnect
-                DBconn.ConnectionString = DB_ConnStr
-                DBconn.ConnectionType = DB_Type
-
-
-                SQLStr = $"EXECUTE [dbo].[HANA_SP_Feeder_UpdateMcID] @pramFdrID = {feederId}, @pramMcID = {McID}, @pramUpdateBy = '{UpdateBy}'"
-                TmpDS = DBconn.DataSet(SQLStr)
-
-                If TmpDS.Tables IsNot Nothing AndAlso TmpDS.Tables.Count > 0 AndAlso TmpDS.Tables(0).Rows.Count > 0 Then
-                    If CBool(TmpDS.Tables(0).Rows(0)(0)) Then
-                        ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
-                        WriteLog($"Data for Feeder ID {feederId} updated by {UpdateBy}.")
-                        Return If(data IsNot Nothing, data, "Update successful")
-                    Else
-                        ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
-                        WriteLog("Feeder not found in the database (" & ResStr & ")")
-                        Return ResStr
-                    End If
-                Else
-                    ResStr = "No Result Return from DB"
-                    WriteLog(ResStr)
+                    ResStr = TmpDS.Tables(0).Rows(0)(1).ToString.Trim
+                    WriteLog("Feeder not found in the database (" & ResStr & ")")
                     Return ResStr
                 End If
+            Else
+                ResStr = "No Result Return from DB"
+                WriteLog(ResStr)
+                Return ResStr
+            End If
 
-            Catch ex As Exception
-                WriteLog($"Catch Error on Feeder Management{vbCr}ErrMsg= {ex.Message}")
-                Return $"Error: {ex.Message}"
-            End Try
-        End Function
+        Catch ex As Exception
+            WriteLog($"Catch Error on Feeder Management{vbCr}ErrMsg= {ex.Message}")
+            Return $"Error: {ex.Message}"
+        End Try
+    End Function
 
-
-
-    End Class
+End Class
